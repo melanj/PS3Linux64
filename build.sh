@@ -7,10 +7,12 @@ readonly CODENAME=sid
 readonly TARGET_DIR=./dist
 readonly MIRROR=https://deb.debian.org/debian-ports
 readonly KEYRING=/usr/share/keyrings/debian-ports-archive-keyring.gpg
-readonly TAR_IMAGE=./rootfs.tar.xz
+readonly ROOT_FS=./rootfs.tar.xz
+readonly BOOT_FS=./bootfs.tar.xz
 readonly PATCH_DIR=kernel_patches
 readonly KERNEL_VER=6.6.67
 readonly CONFIG_FILE=config-$KERNEL_VER-PS3
+readonly LOCAL_VER="-amdexa"
 
 # Ensure target directory exists
 mkdir -p "$TARGET_DIR"
@@ -36,10 +38,10 @@ sudo chroot "$TARGET_DIR" /bin/bash <<EOF
 # Update sources and install necessary packages
 apt modernize-sources -y
 apt update
-apt install -y debian-ports-archive-keyring
+DEBIAN_FRONTEND=noninteractive apt install -y debian-ports-archive-keyring
 apt update
-apt install -y wget curl python3 dialog file git kmod openssh-server sudo vim iputils-ping net-tools network-manager \
- build-essential flex bison libncurses-dev libssl-dev bc dwarves cpio rsync libelf-dev libdebuginfod-dev
+DEBIAN_FRONTEND=noninteractive apt install -y wget curl python3 dialog file git kmod openssh-server sudo vim iputils-ping net-tools network-manager \
+ build-essential flex bison libncurses-dev libssl-dev bc dwarves cpio rsync libelf-dev libdebuginfod-dev dracut
 
 # Enable NetworkManager on boot
 systemctl enable NetworkManager
@@ -65,6 +67,8 @@ cd ~
 # remove the Linux source directory to reduce the image size, although I wish I could keep it.
 rm -rf /usr/src/linux-$KERNEL_VER
 
+dracut --xz -o 'qemu' -o 'qemu-net' --force --kernel-image '/boot/vmlinux-$KERNEL_VER$LOCAL_VER' --kver '$KERNEL_VER$LOCAL_VER'
+
 # Clean up
 apt clean
 EOF
@@ -75,9 +79,17 @@ sudo umount "$TARGET_DIR/dev"
 sudo umount "$TARGET_DIR/proc"
 sudo umount "$TARGET_DIR/sys"
 
-# Create a compressed tar archive
-echo "creating a tar archive of the root filesystem.."
-sudo tar --numeric-owner -cJf "$TAR_IMAGE" -C "$TARGET_DIR" .
+# Create a compressed tar archive of boot fs
+echo "creating a tar archive of the boot filesystem.."
+sudo tar -cJf "$BOOT_FS" -C "$TARGET_DIR/boot" .
 
-echo "Debian $CODENAME root filesystem archive is ready at $TAR_IMAGE."
+# cleanup kernel and initrd images
+sudo rm -f "$TARGET_DIR/boot/vmlinux-$KERNEL_VER$LOCAL_VER"
+sudo rm -f "$TARGET_DIR/boot/initrd.img-$KERNEL_VER$LOCAL_VER"
+
+# Create a compressed tar archive of root fs
+echo "creating a tar archive of the root filesystem.."
+sudo tar --numeric-owner -cJf "$ROOT_FS" -C "$TARGET_DIR" .
+
+echo "Debian PPC64 $CODENAME archives are ready: root FS:$ROOT_FS, boot FS: $BOOT_FS."
 
