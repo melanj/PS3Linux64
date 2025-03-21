@@ -13,6 +13,7 @@ readonly PATCH_DIR=kernel_patches
 readonly KERNEL_VER=6.6.67
 readonly CONFIG_FILE=config-$KERNEL_VER-PS3
 readonly LOCAL_VER="-amdexa"
+readonly HOSTNAME="ps3Linux64"
 
 # Ensure target directory exists
 mkdir -p "$TARGET_DIR"
@@ -68,6 +69,12 @@ cd ~
 rm -rf /usr/src/linux-$KERNEL_VER
 
 dracut --xz -o 'qemu' -o 'qemu-net' --force --kernel-image '/boot/vmlinux-$KERNEL_VER$LOCAL_VER' --kver '$KERNEL_VER$LOCAL_VER'
+
+# configs
+echo "$HOSTNAME" > /etc/hostname
+grep spufs /etc/fstab > /dev/null || echo "spufs /spu spufs rw,relatime,mode=40755 0 0" >> /etc/fstab
+
+mkdir /spu
 
 # Clean up
 apt clean
