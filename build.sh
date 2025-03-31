@@ -10,7 +10,7 @@ readonly KEYRING=/usr/share/keyrings/debian-ports-archive-keyring.gpg
 readonly ROOT_FS=./rootfs.tar.xz
 readonly BOOT_FS=./bootfs.tar.xz
 readonly PATCH_DIR=kernel_patches
-readonly KERNEL_VER=6.6.67
+readonly KERNEL_VER=6.12.16
 readonly CONFIG_FILE=config-$KERNEL_VER-PS3
 readonly LOCAL_VER="-amdexa"
 readonly HOSTNAME="ps3Linux64"
@@ -60,15 +60,13 @@ KBUILD_BUILD_HOST="\$(hostname --fqdn)"
 
 make -j\$(nproc) olddefconfig
 make -j\$(nproc)
-make -j\$(nproc) install
 make -j\$(nproc) modules_install
 make -j\$(nproc) headers_install
+make -j\$(nproc) install
 
 cd ~
 # remove the Linux source directory to reduce the image size, although I wish I could keep it.
 rm -rf /usr/src/linux-$KERNEL_VER
-
-dracut --xz -o 'qemu' -o 'qemu-net' --force --kernel-image '/boot/vmlinux-$KERNEL_VER$LOCAL_VER' --kver '$KERNEL_VER$LOCAL_VER'
 
 # configs
 echo "$HOSTNAME" > /etc/hostname
