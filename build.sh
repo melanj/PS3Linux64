@@ -64,6 +64,13 @@ make -j\$(nproc) modules_install
 make -j\$(nproc) headers_install
 make -j\$(nproc) install
 
+# build libspe2
+cd /usr/src
+git clone https://github.com/melanj/libspe2.git
+cd libspe2
+make
+make install
+
 cd ~
 # remove the Linux source directory to reduce the image size, although I wish I could keep it.
 rm -rf /usr/src/linux-$KERNEL_VER
