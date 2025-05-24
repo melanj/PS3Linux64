@@ -1,3 +1,10 @@
+> [!WARNING]  
+> work in progress
+
+
+> [!IMPORTANT]  
+> TODO: Add credits for patch authors with appropriate links, review the license, and update the project information.
+
 # PS3Linux64: Debian PPC64 for PlayStation 3  
 
 This is a personal project to set up a Debian-based Linux environment on the PlayStation 3. It includes a repackaged Debian PPC64 root filesystem created using `debootstrap` and a custom Linux kernel built for the PS3’s Cell processor.  
